@@ -1,9 +1,7 @@
-﻿OpenSoundMixer
+﻿OpenSoundMixer2
 ==============
 
 This is a sound mixer for multiplatforms.
-
-The sound for test is made by takumi kato.
 
 This project includes the following projects.
 
@@ -13,7 +11,7 @@ This project includes the following projects.
 When it compile on Linux, this project requires PulseAudio.
 
 ## Windows
-* Xaudio2
+* WASAPI
 
 ## Ubuntu
 - apt-get install libpulse-dev
