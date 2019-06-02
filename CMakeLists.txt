@@ -23,9 +23,9 @@ endif()
 # Add codes
 
 file(GLOB_RECURSE common_src
-        src/3rdParty/*.c
-        src/3rdParty/*.h
-	src/Decorder/*.h
+        thirdparty/*.c
+        thirdparty/*.h
+        src/Decorder/*.h
         src/Decorder/*.cpp
         src/Filter/*.h
         src/Filter/*.cpp)
@@ -47,7 +47,7 @@ set(open_al_src
 
 if (BUILD_TEST)
 	set(test_src
-		/src_test/main.cpp)
+		/test/main.cpp)
 endif()
 
 if(WIN32)
@@ -94,9 +94,9 @@ endforeach()
 
 include_directories(
 	src/
-	src/3rdParty/libogg/include/
-	src/3rdParty/libvorbis/include/
-	src/3rdParty/libvorbis/src/)
+	thirdparty/libogg/include/
+	thirdparty/libvorbis/include/
+	thirdparty/libvorbis/src/)
 # 
 
 link_directories(
