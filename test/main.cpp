@@ -4,47 +4,6 @@
 #include <chrono>
 #include <thread>
 
-#if _MSC_VER >= 1900
-
-#ifdef _WIN64
-
-#if _DEBUG
-#pragma comment(lib,"x64/Debug/OpenSoundMixer.lib")
-#else
-#pragma comment(lib,"x64/Release/OpenSoundMixer.lib")
-#endif
-
-#elif _WIN32
-
-#if _DEBUG
-#pragma comment(lib,"x86/Debug/OpenSoundMixer.lib")
-#else
-#pragma comment(lib,"x86/Release/OpenSoundMixer.lib")
-#endif
-
-#endif
-
-#else
-#ifdef _WIN64
-
-#if _DEBUG
-#pragma comment(lib,"x64/Debug/OpenSoundMixer.lib")
-#else
-#pragma comment(lib,"x64/Release/OpenSoundMixer.lib")
-#endif
-
-#elif _WIN32
-
-#if _DEBUG
-#pragma comment(lib,"x86/Debug/OpenSoundMixer.lib")
-#else
-#pragma comment(lib,"x86/Release/OpenSoundMixer.lib")
-#endif
-
-#endif
-
-#endif
-
 #include "OpenSoundMixer.h"
 
 inline void Sleep(int32_t ms)

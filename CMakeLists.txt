@@ -47,7 +47,7 @@ set(open_al_src
 
 if (BUILD_TEST)
 	set(test_src
-		/test/main.cpp)
+		test/main.cpp)
 endif()
 
 if(WIN32)
@@ -138,6 +138,7 @@ endif()
 
 if (BUILD_TEST)
 	target_link_libraries(osmtest ${common_lib}) 
+	target_link_libraries(osmtest osmlib) 
 endif()
 
 
