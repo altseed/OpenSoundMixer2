@@ -9,51 +9,47 @@
 
 #include "Filter/osm.Resampler.h"
 
-namespace osm
-{
-	class Sound_Impl
-		: public Sound
-		, public ReferenceObject
-	{
-	private:
-		bool						m_isDecompressed;
-		std::vector<Sample>			m_samples;
+namespace osm {
+class Sound_Impl : public Sound, public ReferenceObject {
+private:
+    bool m_isDecompressed;
+    std::vector<Sample> m_samples;
 
-		std::vector<uint8_t>		m_data;
-		std::shared_ptr<Decorder>	m_decorder;
-	
-		float						m_loopStart;
-		float						m_loopEnd;
-		bool						isLoopMode = false;
+    std::vector<uint8_t> m_data;
+    std::shared_ptr<Decorder> m_decorder;
 
-	public:
-		Sound_Impl();
-		virtual ~Sound_Impl();
+    float m_loopStart;
+    float m_loopEnd;
+    bool isLoopMode = false;
 
-		bool Load(const void* data, int32_t size, bool isDecompressed);
-		int32_t GetSamples(Sample* samples, int32_t offset, int32_t count);
-		int32_t GetSampleCount() const;
+public:
+    Sound_Impl();
+    virtual ~Sound_Impl();
 
-		float GetLoopStartingPoint() const { return m_loopStart; }
+    bool Load(const void* data, int32_t size, bool isDecompressed);
+    int32_t GetSamples(Sample* samples, int32_t offset, int32_t count);
+    int32_t GetSampleCount() const;
 
-		void SetLoopStartingPoint(float startingPoint) { m_loopStart = startingPoint; }
+    float GetLoopStartingPoint() const { return m_loopStart; }
 
-		float GetLoopEndPoint() const { return m_loopEnd; }
+    void SetLoopStartingPoint(float startingPoint) { m_loopStart = startingPoint; }
 
-		void SetLoopEndPoint(float endPoint) { m_loopEnd = endPoint; }
+    float GetLoopEndPoint() const { return m_loopEnd; }
 
-		bool GetIsLoopingMode() const { return isLoopMode; }
+    void SetLoopEndPoint(float endPoint) { m_loopEnd = endPoint; }
 
-		void SetIsLoopingMode(bool isLoopingMode) { isLoopMode = isLoopingMode; }
+    bool GetIsLoopingMode() const { return isLoopMode; }
 
-		float GetLength() const override;
+    void SetIsLoopingMode(bool isLoopingMode) { isLoopMode = isLoopingMode; }
 
-		// IReferenceを継承したデバイスオブジェクト向け定義
+    float GetLength() const override;
+
+    // IReferenceを継承したデバイスオブジェクト向け定義
 #if !SWIG
-	public:
-		virtual int GetRef() { return ReferenceObject::GetRef(); }
-		virtual int AddRef() { return ReferenceObject::AddRef(); }
-		virtual int Release() { return ReferenceObject::Release(); }
+public:
+    virtual int GetRef() { return ReferenceObject::GetRef(); }
+    virtual int AddRef() { return ReferenceObject::AddRef(); }
+    virtual int Release() { return ReferenceObject::Release(); }
 #endif
-	};
-}
+};
+}  // namespace osm

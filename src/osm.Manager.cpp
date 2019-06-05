@@ -11,19 +11,17 @@
 #include "Manager/osm.Manager_Impl_PulseAudio.h"
 #endif
 
-namespace osm
-{
-	Manager* Manager::Create()
-	{
+namespace osm {
+Manager* Manager::Create() {
 #if defined(_OTHER)
-		auto manager = new osm::Manager_Impl_Other();
+    auto manager = new osm::Manager_Impl_Other();
 #elif _WIN32
-		auto manager = new osm::Manager_Impl_WasApi();
+    auto manager = new osm::Manager_Impl_WasApi();
 #elif defined(__APPLE__)
-		auto manager = new osm::Manager_Impl_OpenAL();
+    auto manager = new osm::Manager_Impl_OpenAL();
 #else
-		auto manager = new osm::Manager_Impl_PulseAudio();
+    auto manager = new osm::Manager_Impl_PulseAudio();
 #endif
-		return manager;
-	}
+    return manager;
 }
+}  // namespace osm
