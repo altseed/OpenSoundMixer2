@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 
-#include "OpenSoundMixer.h"
+#include <OpenSoundMixer.h>
 
 inline void Sleep(int32_t ms)
 {

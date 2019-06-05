@@ -6,12 +6,7 @@ project(OpenSoundMixer)
 #
 option(BUILD_TEST "Build test" OFF)
 
-if (MSVC)
-cmake_minimum_required(VERSION 2.8.11)
-else()
-cmake_minimum_required(VERSION 2.8)
-endif()
-
+cmake_minimum_required(VERSION 3.8)
 
 if (MSVC)
 
@@ -104,18 +99,17 @@ link_directories(
 	${PROJECT_BINARY_DIR}/lib/
 	lib/)
 
+add_library( osmlib STATIC ${common_src} )
 
 if (BUILD_TEST)
 	add_executable( osmtest ${test_src} )
+	target_include_directories(osmtest PRIVATE src)
 endif()
-
-add_library( osmlib STATIC ${common_src} )
 
 if (MSVC)
 
 else()
 	list(APPEND common_lib dl )
-	list(APPEND common_lib OpenSoundMixer )
 
 	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		FIND_PACKAGE(OpenAL REQUIRED)
@@ -138,7 +132,7 @@ endif()
 
 if (BUILD_TEST)
 	target_link_libraries(osmtest ${common_lib}) 
-	target_link_libraries(osmtest osmlib) 
+	target_link_libraries(osmtest PRIVATE osmlib)
 endif()
 
 
