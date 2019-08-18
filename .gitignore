@@ -5,3 +5,6 @@
 *.cache
 *.suo
 *.sdf
+
+build/
+test_data/

@@ -8,6 +8,21 @@ option(BUILD_TEST "Build test" OFF)
 
 cmake_minimum_required(VERSION 3.8)
 
+# download testdata
+if (BUILD_TEST)
+    find_package(PythonInterp 3)
+
+    add_custom_target(test_data
+        SOURCES test_data.dummy
+    )
+
+    add_custom_command(
+        OUTPUT test_data.dummy
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/setup.py
+    )
+endif()
+
+
 if (MSVC)
 
 else()
