@@ -11,8 +11,13 @@ cmake_minimum_required(VERSION 3.8)
 if (MSVC)
 
 else()
-	set(CMAKE_C_FLAGS " -fPIC" ${CMAKE_C_FLAGS})
-	set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC" ${CMAKE_CXX_FLAGS})
+    set(CMAKE_C_FLAGS " -fPIC" ${CMAKE_C_FLAGS})
+    set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC" ${CMAKE_CXX_FLAGS})
+endif()
+
+# sanitize for Debug
+if(SANITIZE_ENABLED)
+    set(CMAKE_CXX_FLAGS " -fsanitize=undefined,address" ${CMAKE_CXX_FLAGS})
 endif()
 
 # Add codes
@@ -27,40 +32,40 @@ file(GLOB_RECURSE common_src
 
 file(GLOB common_root_src
         src/*.h
-	src/*.cpp)
+    src/*.cpp)
 
 list(APPEND common_src ${common_root_src})
 
 set(wasapi_src
-	src/Manager/osm.Manager_Impl_WasApi.cpp)
+    src/Manager/osm.Manager_Impl_WasApi.cpp)
 
 set(pulse_audio_src
-	src/Manager/osm.Manager_Impl_PulseAudio.cpp)
+    src/Manager/osm.Manager_Impl_PulseAudio.cpp)
 
 set(open_al_src
-	src/Manager/osm.Manager_Impl_OpenAL.cpp)
+    src/Manager/osm.Manager_Impl_OpenAL.cpp)
 
 if (BUILD_TEST)
-	set(test_src
-		test/main.cpp)
+    set(test_src
+        test/main.cpp)
 endif()
 
 if(WIN32)
 
-	list(APPEND common_src
-		${wasapi_src})
+    list(APPEND common_src
+        ${wasapi_src})
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	list(APPEND common_src
-		${open_al_src})
+    list(APPEND common_src
+        ${open_al_src})
 else()
-	list(APPEND common_src
-		${pulse_audio_src})
+    list(APPEND common_src
+        ${pulse_audio_src})
 endif()
 
 if (BUILD_TEST)
-	list(APPEND test_src
-		${common_src})
+    list(APPEND test_src
+        ${common_src})
 endif()
 
 foreach(FILE ${common_src}) 
@@ -88,51 +93,51 @@ endforeach()
 
 
 include_directories(
-	src/
-	thirdparty/libogg/include/
-	thirdparty/libvorbis/include/
-	thirdparty/libvorbis/src/)
+    src/
+    thirdparty/libogg/include/
+    thirdparty/libvorbis/include/
+    thirdparty/libvorbis/src/)
 # 
 
 link_directories(
-	${PROJECT_SOURCE_DIR}/lib/
-	${PROJECT_BINARY_DIR}/lib/
-	lib/)
+    ${PROJECT_SOURCE_DIR}/lib/
+    ${PROJECT_BINARY_DIR}/lib/
+    lib/)
 
 add_library( osmlib STATIC ${common_src} )
 
 if (BUILD_TEST)
-	add_executable( osmtest ${test_src} )
-	target_include_directories(osmtest PRIVATE src)
+    add_executable( osmtest ${test_src} )
+    target_include_directories(osmtest PRIVATE src)
 endif()
 
 if (MSVC)
 
 else()
-	list(APPEND common_lib dl )
+    list(APPEND common_lib dl )
 
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		FIND_PACKAGE(OpenAL REQUIRED)
-				
-		if (BUILD_TEST)
-			list(APPEND osmtest ${OpenAL_LIBRARY})
-			target_link_libraries(osmtest "-framework OpenAL")
-		endif()
-	else()
-		FIND_PACKAGE(PulseAudio REQUIRED)
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        FIND_PACKAGE(OpenAL REQUIRED)
+                
+        if (BUILD_TEST)
+            list(APPEND osmtest ${OpenAL_LIBRARY})
+            target_link_libraries(osmtest "-framework OpenAL")
+        endif()
+    else()
+        FIND_PACKAGE(PulseAudio REQUIRED)
 
-		if (BUILD_TEST)
-			list(APPEND osmtest ${PulseAudio_LIBRARY})
-		endif()
-	endif()
+        if (BUILD_TEST)
+            list(APPEND osmtest ${PulseAudio_LIBRARY})
+        endif()
+    endif()
 
-	find_package(Threads REQUIRED)
-	list(APPEND common_lib ${CMAKE_THREAD_LIBS_INIT})
+    find_package(Threads REQUIRED)
+    list(APPEND common_lib ${CMAKE_THREAD_LIBS_INIT})
 endif()
 
 if (BUILD_TEST)
-	target_link_libraries(osmtest ${common_lib}) 
-	target_link_libraries(osmtest PRIVATE osmlib)
+    target_link_libraries(osmtest ${common_lib}) 
+    target_link_libraries(osmtest PRIVATE osmlib)
 endif()
 
 
@@ -141,15 +146,15 @@ set_target_properties(osmlib PROPERTIES OUTPUT_NAME_DEBUG "OpenSoundMixer" )
 set_target_properties(osmlib PROPERTIES OUTPUT_NAME_RELEASE "OpenSoundMixer" )
 
 if (BUILD_TEST)
-	set_target_properties(osmtest PROPERTIES OUTPUT_NAME_DEBUG "OpenSoundMixerTest" )
-	set_target_properties(osmtest PROPERTIES OUTPUT_NAME_RELEASE "OpenSoundMixerTest" )
+    set_target_properties(osmtest PROPERTIES OUTPUT_NAME_DEBUG "OpenSoundMixerTest" )
+    set_target_properties(osmtest PROPERTIES OUTPUT_NAME_RELEASE "OpenSoundMixerTest" )
 endif()
 
 else()
 set_target_properties(osmlib PROPERTIES OUTPUT_NAME "OpenSoundMixer" )
 
 if (BUILD_TEST)
-	set_target_properties(osmtest PROPERTIES OUTPUT_NAME "OpenSoundMixerTest" )
+    set_target_properties(osmtest PROPERTIES OUTPUT_NAME "OpenSoundMixerTest" )
 endif()
 
 set_target_properties(osmlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "lib/" )
@@ -157,14 +162,14 @@ set_target_properties(osmlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY "lib/" )
 endif()
 
 install(
-	TARGETS osmlib
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib)
+    TARGETS osmlib
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib)
 
 if (BUILD_TEST)
-	install(
-		TARGETS osmtest
-		RUNTIME DESTINATION bin
-		ARCHIVE DESTINATION bin
-		LIBRARY DESTINATION bin)
+    install(
+        TARGETS osmtest
+        RUNTIME DESTINATION bin
+        ARCHIVE DESTINATION bin
+        LIBRARY DESTINATION bin)
 endif()
