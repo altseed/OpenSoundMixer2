@@ -7,8 +7,7 @@ project(OpenSoundMixer)
 option(BUILD_TEST "Build test" OFF)
 
 cmake_minimum_required(VERSION 3.8)
-
-message(STATUS "CMAKE_CURRENT_BINARY_DIR = ${CMAKE_CURRENT_BINARY_DIR}")
+set(CMAKE_CXX_STANDARD 11)
 
 # download testdata
 if (BUILD_TEST)
@@ -27,9 +26,11 @@ endif()
 
 if (MSVC)
 
+elseif(APPLE)
+
 else()
     set(CMAKE_C_FLAGS " -fPIC" ${CMAKE_C_FLAGS})
-    set(CMAKE_CXX_FLAGS "-std=c++11 -fPIC" ${CMAKE_CXX_FLAGS})
+    set(CMAKE_CXX_FLAGS " -fPIC" ${CMAKE_CXX_FLAGS})
 endif()
 
 # sanitize for Debug
@@ -139,14 +140,14 @@ else()
         FIND_PACKAGE(OpenAL REQUIRED)
                 
         if (BUILD_TEST)
-            list(APPEND OpenSoundMixerTest ${OpenAL_LIBRARY})
-            target_link_libraries(OpenSoundMixerTest "-framework OpenAL")
+            list(APPEND common_lib ${OpenAL_LIBRARY})
+            target_link_libraries(OpenSoundMixerTest PRIVATE "-framework OpenAL")
         endif()
     else()
         FIND_PACKAGE(PulseAudio REQUIRED)
 
         if (BUILD_TEST)
-            list(APPEND OpenSoundMixerTest ${PulseAudio_LIBRARY})
+            list(APPEND common_lib ${PulseAudio_LIBRARY})
         endif()
     endif()
 
@@ -155,7 +156,7 @@ else()
 endif()
 
 if (BUILD_TEST)
-    target_link_libraries(OpenSoundMixerTest ${common_lib}) 
+    target_link_libraries(OpenSoundMixerTest PRIVATE ${common_lib}) 
     target_link_libraries(OpenSoundMixerTest PRIVATE OpenSoundMixer)
 endif()
 

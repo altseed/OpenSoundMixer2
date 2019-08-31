@@ -11,6 +11,9 @@
 #ifdef WIN32
 #include <Windows.h>
 #include <direct.h>
+#else
+#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 inline void Sleep(int32_t ms) {
@@ -48,7 +51,7 @@ std::string GetExecutingDirectory() {
 
     char temp[32];
     sprintf(temp, "/proc/%d/exe", getpid());
-    int bytes = std::min(readlink(temp, pBuf, 260), 260 - 1);
+    int bytes = std::min((int)readlink(temp, buf, 260), 260 - 1);
     if (bytes >= 0) buf[bytes] = '\0';
 #endif
 
