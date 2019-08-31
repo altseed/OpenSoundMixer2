@@ -52,10 +52,7 @@ protected:
 
     int32_t ReadSamples(Sample* samples, int32_t sampleCount);
 
-    /**
-    @brief	制御用のミューテックスを取得する。
-    @return	ミューテックス
-    */
+    //! get mutex to control sound states
     std::recursive_mutex& GetMutex() { return m_mutex; }
 
 public:
@@ -100,12 +97,11 @@ public:
 
     void SetPanningPosition(int32_t id, float panningPosition) override;
 
-    // IReferenceを継承したデバイスオブジェクト向け定義
-#if !SWIG
+    float GetPlaybackPercent(int32_t id) override;
+
 public:
     virtual int GetRef() { return ReferenceObject::GetRef(); }
     virtual int AddRef() { return ReferenceObject::AddRef(); }
     virtual int Release() { return ReferenceObject::Release(); }
-#endif
 };
 }  // namespace osm

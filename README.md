@@ -8,6 +8,10 @@ This project includes the following projects.
 * libogg-1.3.2
 * libvorbis-1.3.5
 
+## How to build
+
+
+
 ## Requirements
 
 ### Common

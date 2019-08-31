@@ -112,6 +112,8 @@ public:
 
     virtual void SetPanningPosition(int32_t id, float panningPosition) = 0;
 
+	virtual float GetPlaybackPercent(int32_t id) = 0;
+
     static Manager* Create();
 };
 }  // namespace osm

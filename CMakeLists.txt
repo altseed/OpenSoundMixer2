@@ -8,17 +8,19 @@ option(BUILD_TEST "Build test" OFF)
 
 cmake_minimum_required(VERSION 3.8)
 
+message(STATUS "CMAKE_CURRENT_BINARY_DIR = ${CMAKE_CURRENT_BINARY_DIR}")
+
 # download testdata
 if (BUILD_TEST)
     find_package(PythonInterp 3)
 
-    add_custom_target(test_data
-        SOURCES test_data.dummy
+    add_custom_target(TestData
+        SOURCES TestData.dummy
     )
 
     add_custom_command(
-        OUTPUT test_data.dummy
-        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/setup.py
+        OUTPUT TestData.dummy
+        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/scripts/setup.py ${CMAKE_CURRENT_BINARY_DIR}
     )
 endif()
 
@@ -37,19 +39,19 @@ endif()
 
 # Add codes
 
-file(GLOB_RECURSE common_src
-        thirdparty/*.c
-        thirdparty/*.h
-        src/Decorder/*.h
-        src/Decorder/*.cpp
-        src/Filter/*.h
-        src/Filter/*.cpp)
+file(GLOB_RECURSE osm_src
+    thirdparty/*.c
+    thirdparty/*.h
+    src/Decorder/*.h
+    src/Decorder/*.cpp
+    src/Filter/*.h
+    src/Filter/*.cpp)
 
-file(GLOB common_root_src
-        src/*.h
+file(GLOB osm_root_src
+    src/*.h
     src/*.cpp)
 
-list(APPEND common_src ${common_root_src})
+list(APPEND osm_src ${osm_root_src})
 
 set(wasapi_src
     src/Manager/osm.Manager_Impl_WasApi.cpp)
@@ -67,23 +69,20 @@ endif()
 
 if(WIN32)
 
-    list(APPEND common_src
+    list(APPEND osm_src
         ${wasapi_src})
 
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    list(APPEND common_src
+elseif(APPLE)
+    list(APPEND osm_src
         ${open_al_src})
 else()
-    list(APPEND common_src
+    list(APPEND osm_src
         ${pulse_audio_src})
 endif()
 
-if (BUILD_TEST)
-    list(APPEND test_src
-        ${common_src})
-endif()
+set (files ${osm_src} ${test_src})
 
-foreach(FILE ${common_src}) 
+foreach(FILE ${files}) 
     # Get the directory of the source file
     get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)
 
@@ -92,14 +91,18 @@ foreach(FILE ${common_src})
 
     # Make sure we are using windows slashes
     string(REPLACE "/" "\\" GROUP "${GROUP}")
-
+    
     # Group into "Source Files" and "Header Files"
     if ("${FILE}" MATCHES ".*\\.cpp")
-       set(GROUP "Files${GROUP}")
+       set(GROUP "${GROUP}")
     elseif("${FILE}" MATCHES ".*\\.c")
-       set(GROUP "Files${GROUP}")
+       set(GROUP "${GROUP}")
+    elseif("${FILE}" MATCHES ".*\\.cxx")
+       set(GROUP "${GROUP}")
     elseif("${FILE}" MATCHES ".*\\.h")
-       set(GROUP "Files${GROUP}")
+       set(GROUP "${GROUP}")
+    elseif("${FILE}" MATCHES ".*\\.mm")
+       set(GROUP "${GROUP}")
     endif()
 
     source_group("${GROUP}" FILES "${FILE}")
@@ -119,11 +122,12 @@ link_directories(
     ${PROJECT_BINARY_DIR}/lib/
     lib/)
 
-add_library( osmlib STATIC ${common_src} )
+add_library( OpenSoundMixer STATIC ${osm_src} )
 
 if (BUILD_TEST)
-    add_executable( osmtest ${test_src} )
-    target_include_directories(osmtest PRIVATE src)
+    add_executable( OpenSoundMixerTest ${test_src} )
+    target_include_directories(OpenSoundMixerTest PRIVATE src)
+	add_dependencies(OpenSoundMixerTest TestData)
 endif()
 
 if (MSVC)
@@ -131,18 +135,18 @@ if (MSVC)
 else()
     list(APPEND common_lib dl )
 
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if(APPLE)
         FIND_PACKAGE(OpenAL REQUIRED)
                 
         if (BUILD_TEST)
-            list(APPEND osmtest ${OpenAL_LIBRARY})
-            target_link_libraries(osmtest "-framework OpenAL")
+            list(APPEND OpenSoundMixerTest ${OpenAL_LIBRARY})
+            target_link_libraries(OpenSoundMixerTest "-framework OpenAL")
         endif()
     else()
         FIND_PACKAGE(PulseAudio REQUIRED)
 
         if (BUILD_TEST)
-            list(APPEND osmtest ${PulseAudio_LIBRARY})
+            list(APPEND OpenSoundMixerTest ${PulseAudio_LIBRARY})
         endif()
     endif()
 
@@ -151,39 +155,29 @@ else()
 endif()
 
 if (BUILD_TEST)
-    target_link_libraries(osmtest ${common_lib}) 
-    target_link_libraries(osmtest PRIVATE osmlib)
+    target_link_libraries(OpenSoundMixerTest ${common_lib}) 
+    target_link_libraries(OpenSoundMixerTest PRIVATE OpenSoundMixer)
 endif()
 
 
 if (MSVC)
-set_target_properties(osmlib PROPERTIES OUTPUT_NAME_DEBUG "OpenSoundMixer" )
-set_target_properties(osmlib PROPERTIES OUTPUT_NAME_RELEASE "OpenSoundMixer" )
-
-if (BUILD_TEST)
-    set_target_properties(osmtest PROPERTIES OUTPUT_NAME_DEBUG "OpenSoundMixerTest" )
-    set_target_properties(osmtest PROPERTIES OUTPUT_NAME_RELEASE "OpenSoundMixerTest" )
-endif()
-
+    set_target_properties(OpenSoundMixerTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" )
+    set_target_properties(OpenSoundMixer PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "lib/" )
+    set_target_properties(OpenSoundMixer PROPERTIES LIBRARY_OUTPUT_DIRECTORY "lib/" )
 else()
-set_target_properties(osmlib PROPERTIES OUTPUT_NAME "OpenSoundMixer" )
-
-if (BUILD_TEST)
-    set_target_properties(osmtest PROPERTIES OUTPUT_NAME "OpenSoundMixerTest" )
-endif()
-
-set_target_properties(osmlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "lib/" )
-set_target_properties(osmlib PROPERTIES LIBRARY_OUTPUT_DIRECTORY "lib/" )
+    set_target_properties(OpenSoundMixerTest PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}" )
+    set_target_properties(OpenSoundMixer PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "lib/" )
+    set_target_properties(OpenSoundMixer PROPERTIES LIBRARY_OUTPUT_DIRECTORY "lib/" )
 endif()
 
 install(
-    TARGETS osmlib
+    TARGETS OpenSoundMixer
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib)
 
 if (BUILD_TEST)
     install(
-        TARGETS osmtest
+        TARGETS OpenSoundMixerTest
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION bin
         LIBRARY DESTINATION bin)

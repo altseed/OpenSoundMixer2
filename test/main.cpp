@@ -1,10 +1,17 @@
-
+#define NOMINMAX
+#include <algorithm>
 #include <chrono>
+#include <functional>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include <OpenSoundMixer.h>
+
+#ifdef WIN32
+#include <Windows.h>
+#include <direct.h>
+#endif
 
 inline void Sleep(int32_t ms) {
     std::chrono::milliseconds d(ms);
@@ -26,18 +33,38 @@ void SafeRelease(T& t) {
     }
 }
 
-#if _WIN32
-#include <Windows.h>
-std::wstring ToWide(const char* pText);
-void GetDirectoryName(char* dst, char* src);
+std::string GetDirectoryName(const std::string& path) {
+    const std::string::size_type pos = std::max<int32_t>(path.find_last_of('/'), path.find_last_of('\\'));
+    return (pos == std::string::npos) ? std::string() : path.substr(0, pos + 1);
+}
+
+std::string GetExecutingDirectory() {
+    char buf[260];
+
+#ifdef _WIN32
+    int len = GetModuleFileNameA(NULL, buf, 260);
+    if (len <= 0) return "";
+#else
+
+    char temp[32];
+    sprintf(temp, "/proc/%d/exe", getpid());
+    int bytes = std::min(readlink(temp, pBuf, 260), 260 - 1);
+    if (bytes >= 0) buf[bytes] = '\0';
 #endif
 
-int main(int argc, char** argv) {
-#if _WIN32
-    char current_path[MAX_PATH + 1];
-    GetDirectoryName(current_path, argv[0]);
-    SetCurrentDirectoryA(current_path);
+    return GetDirectoryName(buf);
+}
+
+void SetCurrentDir(const char* path) {
+#ifdef _WIN32
+    _chdir(path);
+#else
+    chdir(path);
 #endif
+}
+
+int main(int argc, char** argv) {
+    SetCurrentDir(GetExecutingDirectory().c_str());
 
     osm::Sound* staticSound = nullptr;
     osm::Sound* streamSound = nullptr;
@@ -56,7 +83,7 @@ int main(int argc, char** argv) {
         FILE* fp = nullptr;
 
 #if _WIN32
-        fopen_s(&fp, "se1.wav", "rb");
+        fopen_s(&fp, "../se1.wav", "rb");
 #else
         fp = fopen("se1.wav", "rb");
 #endif
@@ -77,7 +104,7 @@ int main(int argc, char** argv) {
     {
         FILE* fp = nullptr;
 #if _WIN32
-        fopen_s(&fp, "bgm1.ogg", "rb");
+        fopen_s(&fp, "../bgm1.ogg", "rb");
 #else
         fp = fopen("bgm1.ogg", "rb");
 #endif
@@ -103,6 +130,8 @@ int main(int argc, char** argv) {
     auto id2 = manager->Play(staticSound);
 
     while (manager->IsPlaying(id1) || manager->IsPlaying(id2)) {
+        // current playback position
+        // printf("percent %f\n", manager->GetPlaybackPercent(id1));
         Sleep(1);
     }
 
