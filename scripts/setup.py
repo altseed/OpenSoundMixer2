@@ -2,6 +2,8 @@ import urllib.request
 import os
 import sys
 argvs = sys.argv
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 if len(argvs) < 2:
     print('please specify a destination path.')
