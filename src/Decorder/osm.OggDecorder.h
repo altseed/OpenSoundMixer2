@@ -41,6 +41,8 @@ private:
         int32_t ChannelCount;
     } m_original;
 
+    void CloseOGGFile();
+    
 public:
     OggDecorder();
     virtual ~OggDecorder();

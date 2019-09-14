@@ -23,16 +23,6 @@ if (BUILD_TEST)
     )
 endif()
 
-
-if (MSVC)
-
-elseif(APPLE)
-
-else()
-    set(CMAKE_C_FLAGS " -fPIC" ${CMAKE_C_FLAGS})
-    set(CMAKE_CXX_FLAGS " -fPIC" ${CMAKE_CXX_FLAGS})
-endif()
-
 # sanitize for Debug
 if(SANITIZE_ENABLED)
     set(CMAKE_CXX_FLAGS " -fsanitize=undefined,address" ${CMAKE_CXX_FLAGS})
@@ -128,7 +118,7 @@ add_library( OpenSoundMixer STATIC ${osm_src} )
 if (BUILD_TEST)
     add_executable( OpenSoundMixerTest ${test_src} )
     target_include_directories(OpenSoundMixerTest PRIVATE src)
-	add_dependencies(OpenSoundMixerTest TestData)
+    add_dependencies(OpenSoundMixerTest TestData)
 endif()
 
 if (MSVC)
@@ -144,6 +134,7 @@ else()
             target_link_libraries(OpenSoundMixerTest PRIVATE "-framework OpenAL")
         endif()
     else()
+        set_property(TARGET OpenSoundMixer PROPERTY POSITION_INDEPENDENT_CODE TRUE) 
         FIND_PACKAGE(PulseAudio REQUIRED)
 
         if (BUILD_TEST)
@@ -158,6 +149,10 @@ endif()
 if (BUILD_TEST)
     target_link_libraries(OpenSoundMixerTest PRIVATE ${common_lib}) 
     target_link_libraries(OpenSoundMixerTest PRIVATE OpenSoundMixer)
+
+    if(NOT WIN32 AND NOT APPLE)
+        target_link_libraries(OpenSoundMixerTest PRIVATE dl)
+    endif()
 endif()
 
 

@@ -65,6 +65,14 @@ long OggBuffer::tell(void* buffer) {
 
 int OggBuffer::close(void* buffer) { return 0; }
 
+void OggDecorder::CloseOGGFile()
+{
+    if (m_loaded) {
+        ov_clear(&m_ovf);
+    }
+    m_loaded = false;
+}
+
 OggDecorder::OggDecorder() {
     m_original.CurrentSample = 0;
     m_original.TotalSample = 0;
@@ -73,12 +81,13 @@ OggDecorder::OggDecorder() {
 }
 
 OggDecorder::~OggDecorder() {
-    if (m_loaded) {
-        ov_clear(&m_ovf);
-    }
+    CloseOGGFile();
 }
 
 bool OggDecorder::LoadHeader(uint8_t* data, int32_t size) {
+
+    CloseOGGFile();
+    
     m_oggBuffer = OggBuffer(data, size);
 
     ov_callbacks callbacks = {&OggBuffer::read, &OggBuffer::seek, &OggBuffer::close, &OggBuffer::tell};
@@ -104,6 +113,9 @@ bool OggDecorder::LoadHeader(uint8_t* data, int32_t size) {
 }
 
 bool OggDecorder::Load(uint8_t* data, int32_t size) {
+
+    CloseOGGFile();
+
     m_oggBuffer = OggBuffer(data, size);
 
     ov_callbacks callbacks = {&OggBuffer::read, &OggBuffer::seek, &OggBuffer::close, &OggBuffer::tell};
@@ -147,7 +159,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
     sampleStart_i = sampleStart_i >= m_original.TotalSample ? m_original.TotalSample : sampleStart_i;
     sampleEnd_i = sampleEnd_i >= m_original.TotalSample ? m_original.TotalSample : sampleEnd_i;
 
-    // 巻き戻しor大幅スキップ
+    // back or skip
     if (m_original.CurrentSample > sampleStart_i || sampleStart_i - m_original.CurrentSample > 44100 / 5) {
         m_original.Samples.clear();
         ov_pcm_seek(&m_ovf, sampleStart_i);
@@ -162,7 +174,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
         int readSize = 0;
 
         readSize = ov_read(&m_ovf, (char*)buffer, maxReadSize, 0, 2, 1, &bitstream);
-        if (readSize < 0) {  // エラー発生
+        if (readSize < 0) {  // error causes
             return readSize;
         }
 
@@ -170,7 +182,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
         auto dst = m_original.Samples.data() + (m_original.Samples.size() - readSize);
         memcpy(dst, buffer, readSize);
 
-        // 末尾？
+        // tail?
         if (m_original.CurrentSample + m_original.Samples.size() / sampleSize == m_original.TotalSample) break;
     }
 
@@ -187,7 +199,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
             if (sampleR >= sampleCount) {
                 m_original.CurrentSample += i;
 
-                // 使用済み削除
+                // remove used samples
                 m_original.CurrentSample = sampleEnd_i;
                 m_original.Samples.clear();
 
@@ -207,7 +219,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
                 samples[i].Left = left1;
                 samples[i].Right = right1;
 
-                // 使用済み削除
+                // remove used samples
                 m_original.CurrentSample = sampleEnd_i;
                 m_original.Samples.clear();
 
@@ -242,7 +254,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
             if (sampleR >= sampleCount) {
                 m_original.CurrentSample += i;
 
-                // 使用済み削除
+                // remove used samples
                 m_original.CurrentSample = sampleEnd_i;
                 m_original.Samples.clear();
 
@@ -262,7 +274,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
                 samples[i].Left = left1 * (1.0 - sampleD);
                 samples[i].Right = right1 * (1.0 - sampleD);
 
-                // 使用済み削除
+                // remove used samples
                 m_original.CurrentSample = sampleEnd_i;
                 m_original.Samples.clear();
 
@@ -290,7 +302,7 @@ int32_t OggDecorder::GetSamples(Sample* samples, int32_t offset, int32_t count) 
         }
     }
 
-    // 使用済み削除
+    // remove used samples
     auto removingSize = (sampleEnd_i - 1 - m_original.CurrentSample) * sampleSize;
     m_original.Samples.erase(m_original.Samples.begin(), m_original.Samples.begin() + removingSize);
     m_original.CurrentSample = sampleEnd_i - 1;
