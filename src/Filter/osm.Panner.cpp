@@ -1,4 +1,4 @@
-﻿
+﻿#define NOMINMAX
 #include "osm.Panner.h"
 #include <algorithm>
 #include "../OpenSoundMixerInternal.h"
@@ -7,7 +7,7 @@ namespace osm {
 Panner::Panner() : m_position(0.0) {}
 
 std::pair<int32_t, int32_t> Panner::ProcessSamples(Sample inputSamples[], int32_t inputCount, Sample outputSamples[], int32_t outputCount) {
-    int32_t count = Min(inputCount, outputCount);
+    int32_t count = std::min(inputCount, outputCount);
     if (m_position == 0.0) {
         memcpy(outputSamples, inputSamples, count * sizeof(Sample));
         return std::make_pair(count, count);

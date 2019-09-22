@@ -13,9 +13,14 @@ namespace osm {
 class Sound_Impl : public Sound, public ReferenceObject {
 private:
     bool m_isDecompressed;
+
+    //! a buffer to store decompressed data
     std::vector<Sample> m_samples;
 
+    //! a buffer to store compressed data
     std::vector<uint8_t> m_data;
+
+    //! decode a compressed data
     std::shared_ptr<Decorder> m_decorder;
 
     float m_loopStart;
@@ -44,12 +49,9 @@ public:
 
     float GetLength() const override;
 
-    // IReferenceを継承したデバイスオブジェクト向け定義
-#if !SWIG
 public:
     virtual int GetRef() { return ReferenceObject::GetRef(); }
     virtual int AddRef() { return ReferenceObject::AddRef(); }
     virtual int Release() { return ReferenceObject::Release(); }
-#endif
 };
 }  // namespace osm

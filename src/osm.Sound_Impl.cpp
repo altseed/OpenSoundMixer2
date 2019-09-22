@@ -1,4 +1,4 @@
-﻿
+﻿#define NOMINMAX
 #include "osm.Sound_Impl.h"
 
 #include "Decorder/osm.OggDecorder.h"
@@ -17,6 +17,7 @@ bool Sound_Impl::Load(const void* data, int32_t size, bool isDecompressed) {
     if (data == nullptr) return false;
     if (size <= 0) return false;
 
+    // check a file type and generate a decorder
     auto type = Decorder::GetFileType(data, size);
 
     if (type == eFileType::OGG) {
@@ -24,7 +25,11 @@ bool Sound_Impl::Load(const void* data, int32_t size, bool isDecompressed) {
     } else if (type == eFileType::WAVE) {
         m_decorder = std::make_shared<WaveDecorder>();
     }
-
+    else
+    {
+        return false;
+    }
+    
     auto loaded = m_decorder->LoadHeader((uint8_t*)data, size);
     if (!loaded) return false;
 
@@ -62,7 +67,7 @@ bool Sound_Impl::Load(const void* data, int32_t size, bool isDecompressed) {
 
 int32_t Sound_Impl::GetSamples(Sample* samples, int32_t offset, int32_t count) {
     if (m_isDecompressed) {
-        count = Min(m_samples.size() - offset, count);
+        count = std::min(static_cast<int32_t>(m_samples.size()) - offset, count);
         memcpy(samples, &(m_samples[offset]), count * sizeof(Sample));
         return count;
     }

@@ -197,21 +197,21 @@ bool WaveDecorder::Load(uint8_t* data, int32_t size) {
         int32_t chunkSize = 0;
 
         if (STRICMP("fmt ", chunk) == 0) {
-            // チャンクサイズ
+            // read a chunck size
             if (!Read(&chunkSize, data, sizeof(int32_t), offset, size)) return false;
 
-            // フォーマット
+            // read a format
             if (!Read(&fmt, data, 16, offset, size)) return false;
             offset += (chunkSize - 16);
 
             if (fmt.FormatID == 1) {
-                // PCMの場合
+                // if pcm
             } else {
-                // それ以外
+                // if others
                 return false;
             }
         } else if (STRICMP("data", chunk) == 0) {
-            // チャンクサイズ
+            // read a chunck size
             if (!Read(&chunkSize, data, sizeof(int32_t), offset, size)) return false;
 
             // データ
@@ -219,7 +219,7 @@ bool WaveDecorder::Load(uint8_t* data, int32_t size) {
             if (!Read(m_data.data(), data, chunkSize, offset, size)) return false;
 
             if (fmt.FormatID == 1) {
-                // PCMの場合
+                // if pcm
                 auto pcm = new PCM(m_data.data(), m_data.size(), fmt.ChannelCount, fmt.SamplesPerSec, fmt.BitsPerSample);
                 m_pcm = std::shared_ptr<PCM>(pcm);
             }

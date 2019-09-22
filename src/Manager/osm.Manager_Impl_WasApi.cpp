@@ -53,7 +53,7 @@ void Manager_Impl_WasApi::ThreadFunc(void* p) {
         Sample* outputBuffer = nullptr;
         this_->m_audioRender->GetBuffer(bufferFrames, (BYTE**)&outputBuffer);
         if (outputBuffer == NULL) {
-            Sleep(1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             continue;
         }
 

@@ -66,29 +66,7 @@ inline void SafeDeleteArray(T*& p) {
 }
 
 /**
-@brief	最大値取得
-*/
-template <typename T, typename U>
-T Max(T t, U u) {
-    if (t > (T)u) {
-        return t;
-    }
-    return u;
-}
-
-/**
-@brief	最小値取得
-*/
-template <typename T, typename U>
-T Min(T t, U u) {
-    if (t < (T)u) {
-        return t;
-    }
-    return u;
-}
-
-/**
-@brief	範囲内値取得
+@brief	clamp
 */
 template <typename T, typename U, typename V>
 T Clamp(T t, U max_, V min_) {
@@ -103,12 +81,4 @@ T Clamp(T t, U max_, V min_) {
     return t;
 }
 
-inline void Sleep(int32_t ms) {
-#if _WIN32
-    ::Sleep(ms);
-#else
-    std::chrono::milliseconds d(ms);
-    std::this_thread::sleep_for(d);
-#endif
-}
 }  // namespace osm

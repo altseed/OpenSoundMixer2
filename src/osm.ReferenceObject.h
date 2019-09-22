@@ -6,7 +6,7 @@
 
 namespace osm {
 /**
-@brief	参照カウンタオブジェクト
+@brief	Reference Counted
 */
 class ReferenceObject : public IReference {
 private:
