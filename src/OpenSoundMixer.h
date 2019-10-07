@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <functional>
 
 namespace osm {
 struct Sample {
@@ -112,8 +113,20 @@ public:
 
     virtual void SetPanningPosition(int32_t id, float panningPosition) = 0;
 
-	virtual float GetPlaybackPercent(int32_t id) = 0;
+    virtual float GetPlaybackPercent(int32_t id) = 0;
 
     static Manager* Create();
 };
+
+enum class LogType {
+    Info,
+    Warning,
+    Error,
+    Debug,
+};
+
+void SetLogger(const std::function<void(LogType, const char*)>& logger);
+
+void Log(LogType logType, const char* message);
+
 }  // namespace osm

@@ -67,6 +67,8 @@ void SetCurrentDir(const char* path) {
 }
 
 int main(int argc, char** argv) {
+    osm::SetLogger([](osm::LogType logType, const char* message) { printf("%s\n", message); });
+
     SetCurrentDir(GetExecutingDirectory().c_str());
 
     osm::Sound* staticSound = nullptr;
@@ -155,6 +157,8 @@ int main(int argc, char** argv) {
     staticSound->Release();
     streamSound->Release();
     manager->Release();
+
+	osm::SetLogger(nullptr);
 
     return 0;
 }

@@ -102,16 +102,19 @@ bool Manager_Impl_WasApi::InitializeInternal() {
     // Get the audio endpoint device enumerator.
     hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&m_context);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : CoCreateInstance");
         return false;
     }
 
     hr = m_context->GetDefaultAudioEndpoint(eRender, eMultimedia, &m_device);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : IMMDeviceEnumerator::GetDefaultAudioEndpoint");
         return false;
     }
 
     hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&m_audioClient);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : IMMDevice::Activate");
         return false;
     }
 
@@ -120,6 +123,7 @@ bool Manager_Impl_WasApi::InitializeInternal() {
     REFERENCE_TIME minimumDevicePeriod = 0;
     hr = m_audioClient->GetDevicePeriod(&defaultDevicePeriod, &minimumDevicePeriod);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : AudioClient::GetDevicePeriod");
         return false;
     }
 
@@ -127,6 +131,7 @@ bool Manager_Impl_WasApi::InitializeInternal() {
     WAVEFORMATEX* deviceFormat = nullptr;
     hr = m_audioClient->GetMixFormat(&deviceFormat);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : AudioClient::GetMixFormat");
         return false;
     }
 
@@ -145,11 +150,13 @@ bool Manager_Impl_WasApi::InitializeInternal() {
 
     hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 40 * 1000 * 10, 0, &m_format.Format, NULL);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : AudioClient::Initialize");
         return false;
     }
 
     hr = m_audioClient->GetService(__uuidof(IAudioRenderClient), (void**)&m_audioRender);
     if (FAILED(hr)) {
+        Log(LogType::Error, "Failed : AudioClient::GetService");
         return false;
     }
 

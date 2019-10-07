@@ -12,6 +12,17 @@
 #endif
 
 namespace osm {
+
+static std::function<void(LogType, const char*)> g_logger;
+
+void SetLogger(const std::function<void(LogType, const char*)>& logger) { g_logger = logger; }
+
+void Log(LogType logType, const char* message) {
+    if (g_logger != nullptr) {
+        g_logger(logType, message);
+    }
+}
+
 Manager* Manager::Create() {
 #if defined(_OTHER)
     auto manager = new osm::Manager_Impl_Other();
