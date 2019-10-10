@@ -136,22 +136,57 @@ bool Manager_Impl_WasApi::InitializeInternal() {
     }
 
     // Set the output format
-    m_format.Format = *deviceFormat;
-    m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-    m_format.Format.nChannels = 2;
-    m_format.Format.wBitsPerSample = 16;
+    WAVEFORMATEX format = *deviceFormat;
+    CoTaskMemFree(deviceFormat);
+    m_format.Format = format;
+    printf("wBitsPerSample %d\n", m_format.Format.wBitsPerSample);
+    printf("wFormatTag %d\n", m_format.Format.wFormatTag);
+    printf("nChannels %d\n", m_format.Format.nChannels);
+    printf("nAvgBytesPerSec %d\n", m_format.Format.nAvgBytesPerSec);
+
+    // m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    // m_format.Format.nChannels = 2;
+
+    // m_format.Format.wBitsPerSample = 32;
     // m_format.Format.nSamplesPerSec = 48000;	// Need to use device sample rate
-    m_format.Format.nBlockAlign = m_format.Format.nChannels * m_format.Format.wBitsPerSample / 8;
-    m_format.Format.nAvgBytesPerSec = m_format.Format.nBlockAlign * m_format.Format.nSamplesPerSec;
-    m_format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+    // m_format.Format.nBlockAlign = m_format.Format.nChannels * m_format.Format.wBitsPerSample / 8;
+    // m_format.Format.nAvgBytesPerSec = m_format.Format.nBlockAlign * m_format.Format.nSamplesPerSec;
+    // m_format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
     m_format.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
     m_format.Samples.wValidBitsPerSample = m_format.Format.wBitsPerSample;
     m_format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
 
-    hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 40 * 1000 * 10, 0, &m_format.Format, NULL);
+    REFERENCE_TIME default_device_period = 0;
+    REFERENCE_TIME minimum_device_period = 0;
+    m_audioClient->GetDevicePeriod(&default_device_period, &minimum_device_period);
+    // 40 -> 100
+    hr = m_audioClient->Initialize(
+            AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, default_device_period, 0, &m_format.Format, NULL);
     if (FAILED(hr)) {
-        Log(LogType::Error, "Failed : AudioClient::Initialize");
-        return false;
+        UINT32 frame;
+        m_audioClient->GetBufferSize(&frame);
+
+        default_device_period = (REFERENCE_TIME)(
+                10000.0 *  // (REFERENCE_TIME(100ns) / ms) *
+                        1000 *  // (ms / s) *
+                        frame /  // frames /
+                        m_format.Format.nSamplesPerSec +  // (frames / s)
+                0.5);  // 四捨五入？
+
+        SafeRelease(m_audioClient);
+
+        hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&m_audioClient);
+        if (FAILED(hr)) {
+            Log(LogType::Error, "Failed : IMMDevice::Activate");
+            return false;
+        }
+        hr = m_audioClient->Initialize(
+                AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, default_device_period, 0, &m_format.Format, NULL);
+        if (FAILED(hr)) {
+            printf("error code %d\n", (int)hr);
+            Log(LogType::Error, "Failed : AudioClient::Initialize");
+            return false;
+        }
     }
 
     hr = m_audioClient->GetService(__uuidof(IAudioRenderClient), (void**)&m_audioRender);
